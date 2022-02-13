@@ -1,23 +1,20 @@
-import DiscordJS, { Intents } from "discord.js"
+import Discord, { Intents } from "discord.js"
 import { TOKEN } from "./config"
+import DbHelper from "./database/DbHelper"
+import { onInteraction } from "./events/onInteraction"
+import onReady from "./events/onReady"
 
-const client = new DiscordJS.Client({
-    intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MESSAGES
-    ]
-})
-
-client.on("ready", () => {
-    console.log("机器人正在运行中...")
-})
-
-client.on("messageCreate", (message) => {
-    if (message.content === "hello") {
-        message.reply({
-            content: "您好"
-        })
-    }
-})
-
-client.login(TOKEN)
+(async () => {
+    await DbHelper.initialize()
+    const client = new Discord.Client(
+        {
+            intents: [
+                Intents.FLAGS.GUILDS,
+                Intents.FLAGS.GUILD_MESSAGES
+            ]
+        }
+    )
+    client.on("ready", async () => await onReady(client))
+    client.on("interactionCreate", async (interaction) => await onInteraction(interaction))
+    await client.login(TOKEN)
+})()
